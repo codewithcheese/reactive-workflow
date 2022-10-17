@@ -1,0 +1,87 @@
+jobs:
+
+  x-default-job: &default-job
+    runs-on: ${{ fromJSON(inputs.runs_on) }}
+    timeout-minutes: ${{ fromJSON(inputs.jobs_timeout_minutes) }}
+    defaults:
+      run:
+        working-directory: ${{ inputs.working_directory }}
+        shell: bash --noprofile --norc -eo pipefail -x {0}
+
+
+  # solve: what is the transformers equivalent of a matrix?
+  # example: node test of each support node version
+  # posit: matrix is for dynamic jobs based on input, reactions don't need to use matrix since they are dynamic already
+  # follow up: would using a matrix improve UX?
+
+  # solve: how trigger multiple npm test from a single node source contract?
+  # example: if node source contains an array of compatible node versions how to test on each one?
+  # option: generate an intermediate contract for each test
+  # option: transformer can match for each array item
+
+  npm_build:
+    <<: *default-job
+
+    name: Build npm
+
+    input:
+      type: source
+
+    output:
+      type: npm-module
+      data:
+        node_versions: [input, data.node_versions]
+
+    steps: ...
+
+
+  npm_test:
+    <<: *default-job
+
+    name: Test npm
+
+    # Consider: what is the transformers equivalent of fail fast
+    #  strategy:
+    #    fail-fast: false
+
+    input:
+      type: npm-module
+      data:
+        # Problem: can only calculate source node versions ahead of time
+        # Option: could be fed into a matrix without knowing the value ahead of time
+        node_versions: [each, node_version] # match each node version as input
+
+    output:
+      type: node-test-result
+
+    steps:
+        # Note: input artifact loaded automagically
+#      - name: Download source artifact
+#        uses: actions/download-artifact@v3
+#        with:
+#          name: source-${{ github.event.pull_request.head.sha }}
+#          path: /tmp
+#
+#      - name: Extract source artifact
+#        working-directory: .
+#        run: tar -xvf /tmp/source.tgz
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: [input, node_version]
+
+      - name: Install dependencies
+          run: |
+            if [ -e package-lock.json ]; then
+              npm ci
+            else
+              npm i
+            fi
+
+     # Feature: allow for finalization steps to be added to job
+     # finalize:
+
+
+
+

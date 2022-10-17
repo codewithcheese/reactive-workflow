@@ -1,0 +1,12 @@
+{
+  "name": "reactive-workflow",
+  "version": "1.0.0",
+  "description": "Dynamic workflows built from reactive jobs for GitHub actions",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC"
+}
